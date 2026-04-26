@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_lt_language_list" model="ir.ui.view">
+        <field name="name">lt.language.list</field>
+        <field name="model">lt.language</field>
+        <field name="arch" type="xml">
+            <list string="Languages" editable="bottom">
+                <field name="name"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_lt_language" model="ir.actions.act_window">
+        <field name="name">Languages</field>
+        <field name="res_model">lt.language</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

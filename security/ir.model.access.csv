@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_lt_language_admin,lt.language admin,model_lt_language,base.group_system,1,1,1,1
+access_lt_language_portal,lt.language portal,model_lt_language,base.group_portal,1,0,0,0
+access_lt_language_user,lt.language user,model_lt_language,base.group_user,1,0,0,0
+access_lt_profile_admin,lt.profile admin,model_lt_profile,base.group_system,1,1,1,1
+access_lt_profile_portal,lt.profile portal,model_lt_profile,base.group_portal,1,1,1,0
+access_lt_profile_user,lt.profile user,model_lt_profile,base.group_user,1,1,1,0
+access_lt_certificate_admin,lt.certificate admin,model_lt_certificate,base.group_system,1,1,1,1
+access_lt_certificate_portal,lt.certificate portal,model_lt_certificate,base.group_portal,1,1,1,1
+access_lt_certificate_user,lt.certificate user,model_lt_certificate,base.group_user,1,1,1,1
+access_lt_review_admin,lt.review admin,model_lt_review,base.group_system,1,1,1,1
+access_lt_review_portal,lt.review portal,model_lt_review,base.group_portal,1,1,1,0
+access_lt_review_user,lt.review user,model_lt_review,base.group_user,1,1,1,0
+access_lt_contact_request_admin,lt.contact.request admin,model_lt_contact_request,base.group_system,1,1,1,1
+access_lt_contact_request_portal,lt.contact.request portal,model_lt_contact_request,base.group_portal,1,1,1,0
+access_lt_contact_request_user,lt.contact.request user,model_lt_contact_request,base.group_user,1,1,1,0

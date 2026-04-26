@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_teach_and_learn_root" name="TeachAndLearn"
+              sequence="90" web_icon="teach_and_learn,static/src/img/icon.png"/>
+
+    <menuitem id="menu_tal_profiles" name="Profiles"
+              parent="menu_teach_and_learn_root"
+              action="action_lt_profile" sequence="10"/>
+
+    <menuitem id="menu_tal_contact_requests" name="Contact Requests"
+              parent="menu_teach_and_learn_root"
+              action="action_lt_contact_request" sequence="20"/>
+
+    <menuitem id="menu_tal_reviews" name="Reviews"
+              parent="menu_teach_and_learn_root"
+              action="action_lt_review" sequence="30"/>
+
+    <menuitem id="menu_tal_config" name="Configuration"
+              parent="menu_teach_and_learn_root" sequence="90"/>
+
+    <menuitem id="menu_tal_languages" name="Languages"
+              parent="menu_tal_config"
+              action="action_lt_language" sequence="10"/>
+</odoo>

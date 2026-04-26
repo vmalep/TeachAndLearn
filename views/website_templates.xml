@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- ================================================================
+     Layout base
+================================================================ -->
+<template id="layout" name="TeachAndLearn Layout">
+    <t t-call="website.layout">
+        <t t-set="head">
+            <style>
+                .tal-hero { background: #4a90d9; color: #fff; padding: 60px 0; }
+                .tal-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+                .tal-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+                .tal-stars { color: #f5a623; }
+                .tal-badge { display: inline-block; background: #e8f0fe; color: #1a73e8; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.85em; }
+                .tal-badge-teacher { background: #e6f4ea; color: #1e7e34; }
+                .tal-badge-student { background: #fff3cd; color: #856404; }
+                .tal-alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 10px 16px; border-radius: 4px; margin-bottom: 16px; }
+                .tal-alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px 16px; border-radius: 4px; margin-bottom: 16px; }
+                .tal-section-title { font-weight: 600; color: #4a90d9; border-bottom: 2px solid #4a90d9; padding-bottom: 6px; margin: 24px 0 16px; }
+                .tal-price { font-size: 1.2em; font-weight: bold; color: #1e7e34; }
+                .tal-nav { background: #4a90d9; padding: 0; }
+                .tal-nav .navbar-brand { color: #fff; font-weight: 700; font-size: 1.2em; }
+                .tal-nav .nav-link { color: rgba(255,255,255,0.85) !important; }
+                .tal-nav .nav-link:hover { color: #fff !important; }
+            </style>
+        </t>
+        <nav class="navbar navbar-expand-md tal-nav">
+            <div class="container">
+                <a class="navbar-brand" href="/tal/teachers">TeachAndLearn</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#talNav">
+                    <span class="navbar-toggler-icon" style="filter:invert(1)"/>
+                </button>
+                <div class="collapse navbar-collapse" id="talNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tal/teachers">Browse teachers</a>
+                        </li>
+                        <t t-if="not request.env.user._is_public()">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/tal/profile">My profile</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/tal/messages">My messages</a>
+                            </li>
+                        </t>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <t t-if="request.env.user._is_public()">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/tal/register">Register</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/web/login?redirect=/tal/profile">Sign in</a>
+                            </li>
+                        </t>
+                        <t t-else="">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/web/session/logout?redirect=/tal/register">Sign out</a>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <t t-out="0"/>
+    </t>
+</template>
+
+<!-- ================================================================
+     Registration page
+================================================================ -->
+<template id="page_register" name="TAL Register">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="max-width:520px; margin-top:60px;">
+            <h2 class="mb-4">Join TeachAndLearn</h2>
+            <t t-if="error">
+                <div class="tal-alert-error" t-esc="error"/>
+            </t>
+            <form action="/tal/register/submit" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <div class="mb-3">
+                    <label class="form-label">Full name *</label>
+                    <input type="text" name="name" class="form-control" t-att-value="name or ''" required="required"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" name="email" class="form-control" t-att-value="email or ''" required="required"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password *</label>
+                    <input type="password" name="password" class="form-control" required="required"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">I want to… *</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_teacher" id="chk_teacher" value="1"/>
+                        <label class="form-check-label" for="chk_teacher">Teach languages</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_student" id="chk_student" value="1"/>
+                        <label class="form-check-label" for="chk_student">Learn languages</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Create my account</button>
+                <p class="mt-3 text-center text-muted">
+                    Already have an account? <a href="/web/login">Sign in</a>
+                </p>
+            </form>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Profile page
+================================================================ -->
+<template id="page_profile" name="TAL My Profile">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="max-width:700px; margin-top:40px;">
+            <h2 class="mb-1">My Profile</h2>
+            <p class="text-muted mb-3">
+                <t t-if="profile.is_teacher">
+                    <span class="tal-badge tal-badge-teacher">Teacher</span>
+                </t>
+                <t t-if="profile.is_student">
+                    <span class="tal-badge tal-badge-student">Student</span>
+                </t>
+                <t t-if="profile.is_teacher and profile.teacher_state == 'draft'">
+                    <span class="tal-badge" style="background:#fff3cd;color:#856404;">Pending validation</span>
+                </t>
+            </p>
+            <t t-if="saved">
+                <div class="tal-alert-success">Profile saved successfully.</div>
+            </t>
+
+            <form action="/tal/profile/submit" method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <!-- Role -->
+                <h5 class="tal-section-title">My role</h5>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="is_teacher" id="chk_teacher"
+                                   value="1" t-att-checked="'checked' if profile.is_teacher else None"
+                                   onchange="toggleSections()"/>
+                            <label class="form-check-label" for="chk_teacher">I teach</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="is_student" id="chk_student"
+                                   value="1" t-att-checked="'checked' if profile.is_student else None"
+                                   onchange="toggleSections()"/>
+                            <label class="form-check-label" for="chk_student">I learn</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common -->
+                <h5 class="tal-section-title">General information</h5>
+                <div class="mb-3">
+                    <label class="form-label">About me</label>
+                    <textarea name="bio" class="form-control" rows="3"><t t-esc="profile.bio or ''"/></textarea>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Address <small class="text-muted">(private — only you see this)</small></label>
+                        <input type="text" name="address" class="form-control" t-att-value="profile.address or ''"
+                               placeholder="e.g. Rue de la Loi 16, 1000 Bruxelles"/>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Municipality <small class="text-muted">(visible to others)</small></label>
+                        <input type="text" name="municipality" class="form-control" t-att-value="profile.municipality or ''"
+                               placeholder="e.g. Ixelles"/>
+                    </div>
+                </div>
+
+                <!-- Teacher section -->
+                <div id="section_teacher" t-att-style="'' if profile.is_teacher else 'display:none'">
+                    <h5 class="tal-section-title">Teacher information</h5>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Native language</label>
+                            <select name="native_language_id" class="form-select">
+                                <option value="">— select —</option>
+                                <t t-foreach="languages" t-as="language">
+                                    <option t-att-value="language.id"
+                                            t-att-selected="'selected' if language.id == profile.native_language_id.id else None">
+                                        <t t-esc="language.name"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Price per hour</label>
+                            <input type="number" name="price_per_hour" class="form-control" min="0" step="0.5"
+                                   t-att-value="profile.price_per_hour or ''"/>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Languages I teach</label>
+                        <select name="teacher_languages" class="form-select" multiple="multiple" size="5">
+                            <t t-foreach="languages" t-as="language">
+                                <option t-att-value="language.id"
+                                        t-att-selected="'selected' if language in profile.teacher_languages else None">
+                                    <t t-esc="language.name"/>
+                                </option>
+                            </t>
+                        </select>
+                        <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Availability</label>
+                        <textarea name="availability" class="form-control" rows="2"
+                                  placeholder="e.g. Weekday evenings (CET), weekends"><t t-esc="profile.availability or ''"/></textarea>
+                    </div>
+
+                    <!-- Certificates -->
+                    <h6 class="tal-section-title">Certificates</h6>
+                    <t t-if="profile.certificate_ids">
+                        <table class="table table-sm mb-3">
+                            <thead>
+                                <tr>
+                                    <th>Certificate</th>
+                                    <th>Issuing organization</th>
+                                    <th>Date obtained</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="profile.certificate_ids" t-as="cert">
+                                    <tr>
+                                        <td><t t-esc="cert.name"/></td>
+                                        <td><t t-esc="cert.issuing_organization or ''"/></td>
+                                        <td><t t-esc="cert.date_obtained or ''"/></td>
+                                        <td>
+                                            <form t-att-action="'/tal/profile/certificates/%d/delete' % cert.id"
+                                                  method="post" style="display:inline">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted small">No certificates added yet.</p>
+                    </t>
+
+                    <div class="card card-body mb-3 bg-light">
+                        <strong class="d-block mb-2">Add a certificate</strong>
+                        <form action="/tal/profile/certificates/add" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <input type="text" name="cert_name" class="form-control form-control-sm"
+                                           placeholder="Certificate name *" required="required"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="issuing_organization" class="form-control form-control-sm"
+                                           placeholder="Issuing organization"/>
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-4">
+                                    <label class="form-label form-label-sm mb-0 text-muted">Date obtained</label>
+                                    <input type="date" name="date_obtained" class="form-control form-control-sm"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label form-label-sm mb-0 text-muted">Expiry date</label>
+                                    <input type="date" name="date_expiry" class="form-control form-control-sm"/>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <textarea name="description" class="form-control form-control-sm" rows="2"
+                                          placeholder="Description (optional)"/>
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-sm">Add certificate</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Student section -->
+                <div id="section_student" t-att-style="'' if profile.is_student else 'display:none'">
+                    <h5 class="tal-section-title">Student information</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Languages I want to learn</label>
+                        <select name="student_languages" class="form-select" multiple="multiple" size="5">
+                            <t t-foreach="languages" t-as="language">
+                                <option t-att-value="language.id"
+                                        t-att-selected="'selected' if language in profile.student_languages else None">
+                                    <t t-esc="language.name"/>
+                                </option>
+                            </t>
+                        </select>
+                        <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">My level</label>
+                        <select name="student_level" class="form-select">
+                            <option value="">— select —</option>
+                            <t t-foreach="request.env['lt.profile'].sudo()._fields['student_level'].selection" t-as="lvl">
+                                <option t-att-value="lvl[0]"
+                                        t-att-selected="'selected' if lvl[0] == profile.student_level else None">
+                                    <t t-esc="lvl[1]"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">My learning goals</label>
+                        <textarea name="learning_goals" class="form-control" rows="2"
+                                  placeholder="e.g. Prepare for DELF B2, travel, business…"><t t-esc="profile.learning_goals or ''"/></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save profile</button>
+                </div>
+            </form>
+
+            <script>
+                function toggleSections() {
+                    document.getElementById('section_teacher').style.display =
+                        document.getElementById('chk_teacher').checked ? '' : 'none';
+                    document.getElementById('section_student').style.display =
+                        document.getElementById('chk_student').checked ? '' : 'none';
+                }
+            </script>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Messages list
+================================================================ -->
+<template id="page_messages" name="TAL My Messages">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="max-width:720px; margin-top:40px;">
+            <h2 class="mb-4">My Messages</h2>
+            <t t-if="not conversations">
+                <p class="text-muted">No conversations yet.</p>
+            </t>
+            <t t-foreach="conversations" t-as="conv">
+                <a t-att-href="'/tal/messages/%d' % conv.id" class="text-decoration-none">
+                    <div class="tal-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><t t-esc="conv.name"/></strong><br/>
+                            <small class="text-muted">
+                                <t t-if="conv.student_id.id == own_profile.id">
+                                    To: <t t-esc="conv.teacher_id.name"/>
+                                </t>
+                                <t t-else="">
+                                    From: <t t-esc="conv.student_id.name"/>
+                                </t>
+                            </small>
+                        </div>
+                        <span t-att-class="'badge ' + ('bg-success' if conv.state == 'ongoing' else ('bg-secondary' if conv.state == 'closed' else 'bg-primary'))">
+                            <t t-esc="conv.state"/>
+                        </span>
+                    </div>
+                </a>
+            </t>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Message detail
+================================================================ -->
+<template id="page_message_detail" name="TAL Conversation">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="max-width:720px; margin-top:40px;">
+            <a href="/tal/messages" class="btn btn-outline-secondary btn-sm mb-3">← Back to messages</a>
+            <h3><t t-esc="conv.name"/></h3>
+            <p class="text-muted mb-4">
+                Between <strong><t t-esc="conv.student_id.name"/></strong> (student)
+                and <strong><t t-esc="conv.teacher_id.name"/></strong> (teacher)
+            </p>
+
+            <t t-if="sent">
+                <div class="tal-alert-success">Message sent.</div>
+            </t>
+
+            <!-- Message thread -->
+            <div class="mb-4">
+                <t t-if="not messages">
+                    <p class="text-muted">No messages yet.</p>
+                </t>
+                <t t-foreach="messages" t-as="msg">
+                    <div class="tal-card" style="padding:12px 16px; margin-bottom:10px;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <strong><t t-esc="msg.author_id.name"/></strong>
+                            <small class="text-muted"><t t-esc="msg.date"/></small>
+                        </div>
+                        <div><t t-out="msg.body"/></div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Reply form -->
+            <t t-if="conv.state != 'closed'">
+                <h5 class="tal-section-title">Reply</h5>
+                <form t-att-action="'/tal/messages/%d/reply' % conv.id" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="mb-3">
+                        <textarea name="message" class="form-control" rows="4" required="required"
+                                  placeholder="Write your reply…"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send reply</button>
+                </form>
+            </t>
+            <t t-else="">
+                <p class="text-muted"><em>This conversation is closed.</em></p>
+            </t>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Teacher list page
+================================================================ -->
+<template id="page_teacher_list" name="TAL Browse Teachers">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="margin-top:40px;">
+            <h2 class="mb-3">Find a teacher</h2>
+
+            <!-- Filters -->
+            <form method="get" action="/tal/teachers" class="row g-2 mb-4">
+                <div class="col-md-3">
+                    <input type="text" name="language" class="form-control" placeholder="Language"
+                           t-att-value="lang_filter"/>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="location" class="form-control" placeholder="Location"
+                           t-att-value="location_filter"/>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="max_price" class="form-control" placeholder="Max price/hr"
+                           t-att-value="max_price" min="0" step="1"/>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="/tal/teachers" class="btn btn-outline-secondary">Reset</a>
+                </div>
+            </form>
+
+            <t t-if="not teachers">
+                <p class="text-muted">No teachers match your search. Try different filters.</p>
+            </t>
+
+            <div class="row">
+                <t t-foreach="teachers" t-as="teacher">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="tal-card">
+                            <div class="d-flex align-items-center mb-2">
+                                <img t-att-src="'/web/image/res.partner/%d/image_128' % teacher.partner_id.id"
+                                     style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-right:12px;"
+                                     onerror="this.src='/web/static/img/avatar.png'"/>
+                                <div>
+                                    <strong><t t-esc="teacher.name"/></strong><br/>
+                                    <small class="text-muted"><t t-esc="teacher.municipality or ''"/></small>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <t t-foreach="teacher.teacher_languages" t-as="language">
+                                    <span class="tal-badge"><t t-esc="language.name"/></span>
+                                </t>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="tal-price">
+                                    <t t-if="teacher.price_per_hour">
+                                        <t t-esc="teacher.price_per_hour"/> <t t-esc="teacher.currency_id.symbol"/>/hr
+                                    </t>
+                                    <t t-else="">Price on request</t>
+                                </span>
+                                <span class="tal-stars">
+                                    <t t-if="teacher.rating">
+                                        ★ <t t-esc="'%.1f' % teacher.rating"/>
+                                        <small class="text-muted">(<t t-esc="teacher.review_count"/>)</small>
+                                    </t>
+                                    <t t-else=""><small class="text-muted">No reviews yet</small></t>
+                                </span>
+                            </div>
+                            <a t-att-href="'/tal/teachers/%d' % teacher.id"
+                               class="btn btn-outline-primary btn-sm mt-3 w-100">View profile</a>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Teacher detail page
+================================================================ -->
+<template id="page_teacher_detail" name="TAL Teacher Profile">
+    <t t-call="teach_and_learn.layout">
+        <div class="container" style="max-width:720px; margin-top:40px;">
+            <a href="/tal/teachers" class="btn btn-outline-secondary btn-sm mb-3">← Back to teachers</a>
+
+            <div class="tal-card">
+                <div class="d-flex align-items-center mb-3">
+                    <img t-att-src="'/web/image/res.partner/%d/image_128' % teacher.partner_id.id"
+                         style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-right:20px;"
+                         onerror="this.src='/web/static/img/avatar.png'"/>
+                    <div>
+                        <h3 class="mb-0"><t t-esc="teacher.name"/></h3>
+                        <span class="text-muted"><t t-esc="teacher.municipality or ''"/></span>
+                    </div>
+                </div>
+
+                <t t-if="teacher.bio">
+                    <p><t t-esc="teacher.bio"/></p>
+                </t>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Languages taught</strong><br/>
+                        <t t-foreach="teacher.teacher_languages" t-as="language">
+                            <span class="tal-badge"><t t-esc="language.name"/></span>
+                        </t>
+                    </div>
+                    <t t-if="teacher.native_language_id">
+                        <div class="col-6">
+                            <strong>Native language</strong><br/>
+                            <t t-esc="teacher.native_language_id.name"/>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong>Price</strong><br/>
+                        <span class="tal-price">
+                            <t t-if="teacher.price_per_hour">
+                                <t t-esc="teacher.price_per_hour"/> <t t-esc="teacher.currency_id.symbol"/>/hr
+                            </t>
+                            <t t-else="">On request</t>
+                        </span>
+                    </div>
+                    <t t-if="teacher.availability">
+                        <div class="col-6">
+                            <strong>Availability</strong><br/>
+                            <t t-esc="teacher.availability"/>
+                        </div>
+                    </t>
+                </div>
+
+                <t t-if="teacher.rating">
+                    <div class="mb-3">
+                        <strong>Rating</strong>
+                        <span class="tal-stars ms-2">
+                            ★ <t t-esc="'%.1f' % teacher.rating"/>
+                        </span>
+                        <small class="text-muted">(<t t-esc="teacher.review_count"/> review(s))</small>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Reviews -->
+            <t t-if="teacher.review_ids">
+                <h5 class="tal-section-title">Reviews</h5>
+                <t t-foreach="teacher.review_ids" t-as="review">
+                    <div class="tal-card" style="padding:12px 16px;">
+                        <div class="d-flex justify-content-between">
+                            <strong><t t-esc="review.student_id.name"/></strong>
+                            <span class="tal-stars">
+                                <t t-foreach="range(review.rating)" t-as="s">★</t>
+                            </span>
+                        </div>
+                        <t t-if="review.comment">
+                            <p class="mb-0 mt-1 text-muted"><t t-esc="review.comment"/></p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+
+            <!-- Contact form -->
+            <t t-if="own_profile.is_student and own_profile.id != teacher.id">
+                <h5 class="tal-section-title">Contact this teacher</h5>
+                <t t-if="sent">
+                    <div class="tal-alert-success">Your message has been sent!</div>
+                </t>
+                <t t-if="already_contacted and not sent">
+                    <div class="tal-alert-success">
+                        You already have an open conversation with this teacher.
+                        You can send another message below.
+                    </div>
+                </t>
+                <form t-att-action="'/tal/teachers/%d/contact' % teacher.id" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" name="subject" class="form-control" required="required"
+                               placeholder="e.g. English lessons inquiry"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea name="message" class="form-control" rows="4" required="required"
+                                  placeholder="Introduce yourself and describe what you're looking for…"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send message</button>
+                </form>
+            </t>
+        </div>
+    </t>
+</template>
+
+<!-- ================================================================
+     Portal home entry
+================================================================ -->
+<template id="portal_my_home_tal" name="TAL Portal Home Entry"
+          inherit_id="portal.portal_my_home" customize_show="True" priority="30">
+    <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+        <t t-call="portal.portal_docs_entry">
+            <t t-set="title">TeachAndLearn</t>
+            <t t-set="url">/tal/profile</t>
+            <t t-set="placeholder_count">0</t>
+        </t>
+    </xpath>
+</template>
+</odoo>

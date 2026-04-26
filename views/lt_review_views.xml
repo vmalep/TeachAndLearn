@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_lt_review_list" model="ir.ui.view">
+        <field name="name">lt.review.list</field>
+        <field name="model">lt.review</field>
+        <field name="arch" type="xml">
+            <list string="Reviews">
+                <field name="teacher_id"/>
+                <field name="student_id"/>
+                <field name="rating"/>
+                <field name="comment"/>
+                <field name="date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_lt_review" model="ir.actions.act_window">
+        <field name="name">Reviews</field>
+        <field name="res_model">lt.review</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

@@ -1,0 +1,20 @@
+{
+    'name': 'TeachAndLearn',
+    'version': '18.0.1.0.0',
+    'category': 'Website',
+    'summary': 'Connect language teachers with students',
+    'depends': ['website', 'portal', 'mail'],
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'views/lt_language_views.xml',
+        'views/lt_profile_views.xml',
+        'views/lt_review_views.xml',
+        'views/lt_contact_request_views.xml',
+        'views/website_templates.xml',
+        'views/menus.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}
