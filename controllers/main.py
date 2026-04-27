@@ -26,7 +26,7 @@ def _osm_geocode(query):
     return None
 
 
-def _osm_map_src(address, municipality=''):
+def _osm_map_src(address='', municipality=''):
     """Return an OSM embed iframe src, trying progressively simpler queries."""
     import re
     # Strip apartment/box suffixes that confuse Nominatim (e.g. "boîte 22", "bte 3", "bus 5")
