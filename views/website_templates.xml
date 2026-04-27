@@ -174,6 +174,13 @@
                                placeholder="e.g. Ixelles"/>
                     </div>
                 </div>
+                <t t-if="map_src">
+                    <div class="mb-3">
+                        <iframe t-att-src="map_src" width="100%" height="250" frameborder="0"
+                                style="border:0; border-radius:4px;"
+                                allowfullscreen="allowfullscreen"></iframe>
+                    </div>
+                </t>
 
                 <!-- Teacher section -->
                 <div id="section_teacher" t-att-style="'' if profile.is_teacher else 'display:none'">
@@ -251,7 +258,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Save profile</button>
+                    <button type="submit" class="btn btn-primary" id="tal-save-btn">Save profile</button>
                 </div>
             </form>
 
@@ -331,6 +338,12 @@
                     document.getElementById('section_student').style.display =
                         document.getElementById('chk_student').checked ? '' : 'none';
                 }
+
+                document.querySelector('form[action="/tal/profile/submit"]').addEventListener('submit', function () {
+                    var btn = document.getElementById('tal-save-btn');
+                    btn.disabled = true;
+                    btn.textContent = 'Saving…';
+                });
             </script>
         </div>
     </t>

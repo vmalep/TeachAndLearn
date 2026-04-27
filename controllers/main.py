@@ -1,8 +1,36 @@
+import urllib.request
+import urllib.parse
+import json
+import logging
+
 from odoo import http
 from odoo.http import request
-
-
 from odoo.addons.portal.controllers.portal import CustomerPortal
+
+_logger = logging.getLogger(__name__)
+
+
+def _osm_map_src(address):
+    """Return an OSM embed iframe src for the given address, or None."""
+    if not address:
+        return None
+    try:
+        url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode({
+            'q': address, 'format': 'json', 'limit': '1',
+        })
+        req = urllib.request.Request(url, headers={'User-Agent': 'TeachAndLearn/1.0 (odoo-dev)'})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read())
+        if data:
+            lat, lon = float(data[0]['lat']), float(data[0]['lon'])
+            m = 0.008
+            return (
+                f'https://www.openstreetmap.org/export/embed.html'
+                f'?bbox={lon-m},{lat-m},{lon+m},{lat+m}&layer=mapnik&marker={lat},{lon}'
+            )
+    except Exception:
+        _logger.debug('OSM geocoding failed for address: %s', address)
+    return None
 
 
 class TeachAndLearnPortal(CustomerPortal):
@@ -98,11 +126,14 @@ class TeachAndLearnController(http.Controller):
                 'error': 'Please complete your registration to continue.',
             })
         languages = request.env['lt.language'].sudo().search([])
+        map_address = profile.address or profile.municipality or ''
+        map_src = _osm_map_src(map_address)
         return request.render('teach_and_learn.page_profile', {
             'profile': profile,
             'languages': languages,
             'saved': kwargs.get('saved'),
             'error': kwargs.get('error'),
+            'map_src': map_src,
         })
 
     @http.route('/tal/profile/submit', auth='user', website=True,
