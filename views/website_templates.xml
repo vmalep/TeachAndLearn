@@ -214,72 +214,6 @@
                         <textarea name="availability" class="form-control" rows="2"
                                   placeholder="e.g. Weekday evenings (CET), weekends"><t t-esc="profile.availability or ''"/></textarea>
                     </div>
-
-                    <!-- Certificates -->
-                    <h6 class="tal-section-title">Certificates</h6>
-                    <t t-if="profile.certificate_ids">
-                        <table class="table table-sm mb-3">
-                            <thead>
-                                <tr>
-                                    <th>Certificate</th>
-                                    <th>Issuing organization</th>
-                                    <th>Date obtained</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="profile.certificate_ids" t-as="cert">
-                                    <tr>
-                                        <td><t t-esc="cert.name"/></td>
-                                        <td><t t-esc="cert.issuing_organization or ''"/></td>
-                                        <td><t t-esc="cert.date_obtained or ''"/></td>
-                                        <td>
-                                            <form t-att-action="'/tal/profile/certificates/%d/delete' % cert.id"
-                                                  method="post" style="display:inline">
-                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                                <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-                    </t>
-                    <t t-else="">
-                        <p class="text-muted small">No certificates added yet.</p>
-                    </t>
-
-                    <div class="card card-body mb-3 bg-light">
-                        <strong class="d-block mb-2">Add a certificate</strong>
-                        <form action="/tal/profile/certificates/add" method="post">
-                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                            <div class="row g-2 mb-2">
-                                <div class="col-md-6">
-                                    <input type="text" name="cert_name" class="form-control form-control-sm"
-                                           placeholder="Certificate name *" required="required"/>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="text" name="issuing_organization" class="form-control form-control-sm"
-                                           placeholder="Issuing organization"/>
-                                </div>
-                            </div>
-                            <div class="row g-2 mb-2">
-                                <div class="col-md-4">
-                                    <label class="form-label form-label-sm mb-0 text-muted">Date obtained</label>
-                                    <input type="date" name="date_obtained" class="form-control form-control-sm"/>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label form-label-sm mb-0 text-muted">Expiry date</label>
-                                    <input type="date" name="date_expiry" class="form-control form-control-sm"/>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <textarea name="description" class="form-control form-control-sm" rows="2"
-                                          placeholder="Description (optional)"/>
-                            </div>
-                            <button type="submit" class="btn btn-secondary btn-sm">Add certificate</button>
-                        </form>
-                    </div>
                 </div>
 
                 <!-- Student section -->
@@ -321,10 +255,79 @@
                 </div>
             </form>
 
+            <!-- Certificate management is outside the main form to avoid invalid nested forms -->
+            <div id="section_teacher_certs" t-att-style="'' if profile.is_teacher else 'display:none'">
+                <h6 class="tal-section-title">Certificates</h6>
+                <t t-if="profile.certificate_ids">
+                    <table class="table table-sm mb-3">
+                        <thead>
+                            <tr>
+                                <th>Certificate</th>
+                                <th>Issuing organization</th>
+                                <th>Date obtained</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="profile.certificate_ids" t-as="cert">
+                                <tr>
+                                    <td><t t-esc="cert.name"/></td>
+                                    <td><t t-esc="cert.issuing_organization or ''"/></td>
+                                    <td><t t-esc="cert.date_obtained or ''"/></td>
+                                    <td>
+                                        <form t-att-action="'/tal/profile/certificates/%d/delete' % cert.id"
+                                              method="post" style="display:inline">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+                <t t-else="">
+                    <p class="text-muted small">No certificates added yet.</p>
+                </t>
+
+                <div class="card card-body mb-3 bg-light">
+                    <strong class="d-block mb-2">Add a certificate</strong>
+                    <form action="/tal/profile/certificates/add" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <input type="text" name="cert_name" class="form-control form-control-sm"
+                                       placeholder="Certificate name *" required="required"/>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="issuing_organization" class="form-control form-control-sm"
+                                       placeholder="Issuing organization"/>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <label class="form-label form-label-sm mb-0 text-muted">Date obtained</label>
+                                <input type="date" name="date_obtained" class="form-control form-control-sm"/>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label form-label-sm mb-0 text-muted">Expiry date</label>
+                                <input type="date" name="date_expiry" class="form-control form-control-sm"/>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <textarea name="description" class="form-control form-control-sm" rows="2"
+                                      placeholder="Description (optional)"/>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-sm">Add certificate</button>
+                    </form>
+                </div>
+            </div>
+
             <script>
                 function toggleSections() {
-                    document.getElementById('section_teacher').style.display =
-                        document.getElementById('chk_teacher').checked ? '' : 'none';
+                    var isTeacher = document.getElementById('chk_teacher').checked;
+                    document.getElementById('section_teacher').style.display = isTeacher ? '' : 'none';
+                    document.getElementById('section_teacher_certs').style.display = isTeacher ? '' : 'none';
                     document.getElementById('section_student').style.display =
                         document.getElementById('chk_student').checked ? '' : 'none';
                 }
