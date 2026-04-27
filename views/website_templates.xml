@@ -132,7 +132,7 @@
                 <div class="tal-alert-success">Profile saved successfully.</div>
             </t>
 
-            <form action="/tal/profile/submit" method="post">
+            <form id="profile-form" action="/tal/profile/submit" method="post">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                 <!-- Role -->
@@ -222,47 +222,10 @@
                                   placeholder="e.g. Weekday evenings (CET), weekends"><t t-esc="profile.availability or ''"/></textarea>
                     </div>
                 </div>
-
-                <!-- Student section -->
-                <div id="section_student" t-att-style="'' if profile.is_student else 'display:none'">
-                    <h5 class="tal-section-title">Student information</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Languages I want to learn</label>
-                        <select name="student_languages" class="form-select" multiple="multiple" size="5">
-                            <t t-foreach="languages" t-as="language">
-                                <option t-att-value="language.id"
-                                        t-att-selected="'selected' if language in profile.student_languages else None">
-                                    <t t-esc="language.name"/>
-                                </option>
-                            </t>
-                        </select>
-                        <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">My level</label>
-                        <select name="student_level" class="form-select">
-                            <option value="">— select —</option>
-                            <t t-foreach="request.env['lt.profile'].sudo()._fields['student_level'].selection" t-as="lvl">
-                                <option t-att-value="lvl[0]"
-                                        t-att-selected="'selected' if lvl[0] == profile.student_level else None">
-                                    <t t-esc="lvl[1]"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">My learning goals</label>
-                        <textarea name="learning_goals" class="form-control" rows="2"
-                                  placeholder="e.g. Prepare for DELF B2, travel, business…"><t t-esc="profile.learning_goals or ''"/></textarea>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary" id="tal-save-btn">Save profile</button>
-                </div>
             </form>
 
-            <!-- Certificate management is outside the main form to avoid invalid nested forms -->
+            <!-- Certificates: outside <form> to avoid nesting, but placed here so they appear
+                 inside the teacher section. Student inputs below use form="profile-form". -->
             <div id="section_teacher_certs" t-att-style="'' if profile.is_teacher else 'display:none'">
                 <h6 class="tal-section-title">Certificates</h6>
                 <t t-if="profile.certificate_ids">
@@ -328,6 +291,44 @@
                         <button type="submit" class="btn btn-secondary btn-sm">Add certificate</button>
                     </form>
                 </div>
+            </div>
+
+            <!-- Student section: inputs linked to profile-form via form attribute -->
+            <div id="section_student" t-att-style="'' if profile.is_student else 'display:none'">
+                <h5 class="tal-section-title">Student information</h5>
+                <div class="mb-3">
+                    <label class="form-label">Languages I want to learn</label>
+                    <select name="student_languages" form="profile-form" class="form-select" multiple="multiple" size="5">
+                        <t t-foreach="languages" t-as="language">
+                            <option t-att-value="language.id"
+                                    t-att-selected="'selected' if language in profile.student_languages else None">
+                                <t t-esc="language.name"/>
+                            </option>
+                        </t>
+                    </select>
+                    <small class="text-muted">Hold Ctrl / Cmd to select multiple.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">My level</label>
+                    <select name="student_level" form="profile-form" class="form-select">
+                        <option value="">— select —</option>
+                        <t t-foreach="request.env['lt.profile'].sudo()._fields['student_level'].selection" t-as="lvl">
+                            <option t-att-value="lvl[0]"
+                                    t-att-selected="'selected' if lvl[0] == profile.student_level else None">
+                                <t t-esc="lvl[1]"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">My learning goals</label>
+                    <textarea name="learning_goals" form="profile-form" class="form-control" rows="2"
+                              placeholder="e.g. Prepare for DELF B2, travel, business…"><t t-esc="profile.learning_goals or ''"/></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" form="profile-form" class="btn btn-primary" id="tal-save-btn">Save profile</button>
             </div>
 
             <script>
