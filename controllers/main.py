@@ -284,11 +284,13 @@ class TeachAndLearnController(http.Controller):
             ('state', '!=', 'closed'),
         ], limit=1)
 
+        map_src = _osm_map_src(municipality=teacher.municipality or '')
         return request.render('teach_and_learn.page_teacher_detail', {
             'teacher': teacher,
             'own_profile': own_profile,
             'already_contacted': already_contacted,
             'sent': kwargs.get('sent'),
+            'map_src': map_src,
         })
 
     # ------------------------------------------------------------------
