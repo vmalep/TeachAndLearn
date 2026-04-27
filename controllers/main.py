@@ -10,26 +10,47 @@ from odoo.addons.portal.controllers.portal import CustomerPortal
 _logger = logging.getLogger(__name__)
 
 
-def _osm_map_src(address):
-    """Return an OSM embed iframe src for the given address, or None."""
-    if not address:
-        return None
+def _osm_geocode(query):
+    """Return (lat, lon) for a query string via Nominatim, or None."""
     try:
         url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode({
-            'q': address, 'format': 'json', 'limit': '1',
+            'q': query, 'format': 'json', 'limit': '1',
         })
         req = urllib.request.Request(url, headers={'User-Agent': 'TeachAndLearn/1.0 (odoo-dev)'})
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read())
         if data:
-            lat, lon = float(data[0]['lat']), float(data[0]['lon'])
+            return float(data[0]['lat']), float(data[0]['lon'])
+    except Exception:
+        _logger.debug('OSM geocoding failed for query: %s', query)
+    return None
+
+
+def _osm_map_src(address, municipality=''):
+    """Return an OSM embed iframe src, trying progressively simpler queries."""
+    import re
+    # Strip apartment/box suffixes that confuse Nominatim (e.g. "boîte 22", "bte 3", "bus 5")
+    street = re.sub(r'\s+b(?:o[iî]te|te|us)\s+\S+\s*$', '', address, flags=re.IGNORECASE).strip() if address else ''
+
+    candidates = []
+    if street and municipality:
+        candidates.append(f'{street}, {municipality}')
+    if street:
+        candidates.append(street)
+    if address and municipality and address != street:
+        candidates.append(f'{address}, {municipality}')
+    if municipality:
+        candidates.append(municipality)
+
+    for query in candidates:
+        result = _osm_geocode(query)
+        if result:
+            lat, lon = result
             m = 0.008
             return (
                 f'https://www.openstreetmap.org/export/embed.html'
                 f'?bbox={lon-m},{lat-m},{lon+m},{lat+m}&layer=mapnik&marker={lat},{lon}'
             )
-    except Exception:
-        _logger.debug('OSM geocoding failed for address: %s', address)
     return None
 
 
@@ -126,8 +147,7 @@ class TeachAndLearnController(http.Controller):
                 'error': 'Please complete your registration to continue.',
             })
         languages = request.env['lt.language'].sudo().search([])
-        map_address = profile.address or profile.municipality or ''
-        map_src = _osm_map_src(map_address)
+        map_src = _osm_map_src(profile.address or '', profile.municipality or '')
         return request.render('teach_and_learn.page_profile', {
             'profile': profile,
             'languages': languages,
